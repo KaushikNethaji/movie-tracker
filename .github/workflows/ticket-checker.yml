@@ -32,7 +32,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           URL : ${{ secrets.URL }}
-        run: python spiderman_ticket_checker.py
+        run: python check.py
 
       - name: Upload debug artifacts
         if: always()
