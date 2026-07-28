@@ -1,0 +1,47 @@
+name: Ticket Checker
+
+on:
+  schedule:
+    # Fires every 4 minutes; the random sleep step below spreads
+    # actual runs out to a 4-6 minute effective interval.
+    - cron: "*/4 * * * *"
+  workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5   # safety cap so a hung run doesn't overlap the next trigger
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright requests
+          playwright install --with-deps chromium
+
+      - name: Random jitter (0-119s) so effective interval is ~4-6 min
+        run: sleep $((RANDOM % 120))
+
+      - name: Run ticket check
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          URL : ${{ secrets.URL }}
+        run: python spiderman_ticket_checker.py
+
+      - name: Upload debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-artifacts-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            page.html
+            page.png
+            error_*.png
+          if-no-files-found: ignore
+          retention-days: 1
