@@ -110,7 +110,7 @@ with sync_playwright() as p:
     context = p.chromium.launch_persistent_context(
         user_data_dir=PROFILE_DIR,
         channel="chrome",              # use real installed Chrome, not bundled Chromium
-        headless=False,
+        headless=True,
         slow_mo=100,
         ignore_https_errors=True,
         locale="en-IN",
