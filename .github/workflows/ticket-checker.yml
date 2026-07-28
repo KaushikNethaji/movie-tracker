@@ -23,6 +23,8 @@ jobs:
         run: |
           pip install playwright requests
           playwright install --with-deps chromium
+          pip install playwright-stealth
+          pip install tf-playwright-stealth
 
       - name: Random jitter (0-119s) so effective interval is ~4-6 min
         run: sleep $((RANDOM % 120))

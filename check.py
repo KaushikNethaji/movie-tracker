@@ -13,7 +13,6 @@ URL = os.environ.get("URL", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "")
 
-CHECK_INTERVAL = 300  # 5 minutes
 # ---- Chrome profile config ----
 # Point this at a COPY of your real Chrome profile, not the live one Chrome
 # itself is using — Chrome locks the profile folder while it's running.
@@ -130,28 +129,27 @@ with sync_playwright() as p:
         "Accept-Language": "en-US,en;q=0.9"
     })
 
-    while True:
-        print(f"\n========== {time.strftime('%Y-%m-%d %H:%M:%S')} ==========")
+    print(f"\n========== {time.strftime('%Y-%m-%d %H:%M:%S')} ==========")
+
+    try:
+        check(page)
+
+    except Error as e:
+        print(f"Playwright Error: {e}")
+        send_telegram_message(f"❌ <b>Playwright Error</b>\n{e}")
 
         try:
-            check(page)
-
-        except Error as e:
-            print(f"Playwright Error: {e}")
-            send_telegram_message(f"❌ <b>Playwright Error</b>\n{e}")
-
-            try:
-                page.screenshot(
-                    path=f"error_{int(time.time())}.png",
-                    full_page=True,
-                )
-            except Exception:
-                pass
-
+            page.screenshot(
+                path=f"error_{int(time.time())}.png",
+                full_page=True,
+            )
         except Exception:
-            tb = traceback.format_exc()
-            traceback.print_exc()
-            send_telegram_message(f"❌ <b>Unexpected Error</b>\n<pre>{tb[-3000:]}</pre>")
+            pass
 
-        print(f"Sleeping for {CHECK_INTERVAL // 60} minutes...\n")
-        time.sleep(CHECK_INTERVAL)
+    except Exception:
+        tb = traceback.format_exc()
+        traceback.print_exc()
+        send_telegram_message(f"❌ <b>Unexpected Error</b>\n<pre>{tb[-3000:]}</pre>")
+
+    finally:
+        context.close()
